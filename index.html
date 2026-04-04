@@ -62,7 +62,7 @@
 
     <div class="field">
         <label>Descripción Equipo (BMI)</label>
-        <input type="text" id="producto" placeholder="Radio, Notebook, etc...">
+        <input type="text" id="producto" placeholder="Equipo entregado...">
     </div>
 
     <div class="field">
@@ -89,9 +89,9 @@
         <input type="text" id="busquedaId" style="flex:1; border-radius: 8px 0 0 8px;" placeholder="Ingresar ID...">
         <button class="btn btn-search" style="border-radius: 0 8px 8px 0; padding:10px 20px;" onclick="buscar()">BUSCAR</button>
     </div>
-    <button id="btnFinalizar" class="btn btn-save" onclick="guardar()">Finalizar y Generar PDF</button>
-    <button id="btnDevolver" class="btn btn-return" onclick="devolver()">Registrar Devolución</button>
-    <button class="btn btn-new" onclick="nuevo()">Nuevo Procedimiento</button>
+    <button id="btnFinalizar" class="btn btn-save" onclick="guardar()">Finalizar y Registrar Entrega</button>
+    <button id="btnDevolver" class="btn btn-return" onclick="devolver()">Registrar Devolución y Cerrar</button>
+    <button class="btn btn-new" onclick="nuevo()">Limpiar / Nuevo</button>
 </div>
 
 <script>
@@ -124,17 +124,15 @@
         limpiar();
     }
 
-    // Sistema de Dibujo Optimizado
+    // Dibujo
     function getPos(e) {
         const rect = canvas.getBoundingClientRect();
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
         return { x: clientX - rect.left, y: clientY - rect.top };
     }
-
     function empezar(e) { dibujando = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); if(e.touches) e.preventDefault(); }
     function mover(e) { if(!dibujando) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); if(e.touches) e.preventDefault(); }
-
     canvas.addEventListener('mousedown', empezar);
     canvas.addEventListener('mousemove', mover);
     window.addEventListener('mouseup', () => dibujando = false);
@@ -144,29 +142,22 @@
 
     function limpiar() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
-    // BUSCADOR REPARADO (EVITA BLOQUEOS)
     function buscar() {
         const idBuscado = document.getElementById('busquedaId').value.trim();
         if(!idBuscado) return;
-
-        // Recuperar base de datos
         const db = JSON.parse(localStorage.getItem('AGA_DB')) || [];
         const reg = db.find(r => r.id === idBuscado);
 
         if(reg) {
-            // Cargar datos en los campos
             document.getElementById('idVale').value = reg.id;
             document.getElementById('fecha').value = reg.fecha;
             document.getElementById('producto').value = reg.producto;
             document.getElementById('responsable').value = reg.responsable;
             document.getElementById('obs').value = reg.obs;
-            
-            // Re-dibujar firma
             const img = new Image();
             img.onload = () => { limpiar(); ctx.drawImage(img, 0, 0); };
             img.src = reg.firma;
             
-            // Actualizar Estado Visual
             const st = document.getElementById('statusTxt');
             if(reg.estado === "DEVUELTO") {
                 st.className = "status status-devuelto";
@@ -178,16 +169,11 @@
                 document.getElementById('btnDevolver').style.display = "block";
             }
             document.getElementById('btnFinalizar').style.display = "none";
-        } else {
-            alert("ID " + idBuscado + " no encontrado.");
-        }
+        } else { alert("ID no encontrado."); }
     }
 
     function guardar() {
-        if(!document.getElementById('producto').value || !document.getElementById('responsable').value) {
-            alert("⚠️ Complete Producto y Responsable");
-            return;
-        }
+        if(!document.getElementById('producto').value || !document.getElementById('responsable').value) return alert("Faltan datos");
 
         const data = {
             id: document.getElementById('idVale').value,
@@ -203,11 +189,17 @@
         db.push(data);
         localStorage.setItem('AGA_DB', JSON.stringify(db));
         
-        // Efecto visual de guardado antes de imprimir
+        // Cambio visual previo a imprimir
         document.getElementById('statusTxt').className = "status status-registrado";
         document.getElementById('statusTxt').innerText = "Estado: En Custodia (Registrado)";
         
-        setTimeout(() => { window.print(); }, 400);
+        window.print();
+        
+        // REPARACIÓN: Limpia el vale automáticamente después de imprimir
+        setTimeout(() => { 
+            alert("Entrega Registrada con éxito.");
+            nuevo(); 
+        }, 1000);
     }
 
     function devolver() {
@@ -220,15 +212,19 @@
             db[index].fecha = "Cerrado: " + new Date().toLocaleString();
             localStorage.setItem('AGA_DB', JSON.stringify(db));
             
-            // Refrescar vista
+            // Refrescar vista para el PDF
             document.getElementById('fecha').value = db[index].fecha;
             const st = document.getElementById('statusTxt');
             st.className = "status status-devuelto";
             st.innerText = "Estado: Devolución Completada";
             
-            document.getElementById('btnDevolver').style.display = "none";
-            
-            setTimeout(() => { window.print(); }, 400);
+            window.print();
+
+            // REPARACIÓN: Limpia el vale automáticamente después de la devolución
+            setTimeout(() => { 
+                alert("Devolución procesada. El ciclo se ha cerrado.");
+                nuevo(); 
+            }, 1000);
         }
     }
 </script>
