@@ -3,25 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AGA PROTOCOLO | VICTORIA</title>
+    <title>AGA PROTOCOLO | VICTORIA TOTAL</title>
     <style>
         :root { --blue: #2c3e50; --green: #27ae60; --yellow: #f1c40f; --red: #e74c3c; --purple: #8e44ad; --wa: #25d366; }
         body { font-family: 'Segoe UI', sans-serif; background: #ecf0f1; padding: 10px; display: flex; flex-direction: column; align-items: center; margin: 0; }
         
         #printableArea { background: white; width: 100%; max-width: 480px; padding: 20px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-top: 10px solid var(--blue); box-sizing: border-box; }
         
-        /* REPARACIÓN DEFINITIVA PARA PDF: BORDE SÓLIDO */
+        /* REFUERZO DE COLOR PARA IMPRESIÓN MÓVIL */
         .status { 
             text-align: center; font-weight: bold; padding: 12px; margin-bottom: 15px; border-radius: 6px; 
             font-size: 14px; text-transform: uppercase;
-            /* Forzado de color y bordes para que la impresora lo vea */
             -webkit-print-color-adjust: exact !important; 
-            print-color-adjust: exact !important; 
-            box-shadow: inset 0 0 0 1000px transparent; /* Truco para Chrome */
+            print-color-adjust: exact !important;
+            border: 4px solid rgba(0,0,0,0.1) !important;
         }
-        .status-emision { background-color: var(--yellow) !important; color: #000 !important; border: 3px solid var(--yellow) !important; }
-        .status-registrado { background-color: var(--red) !important; color: #fff !important; border: 3px solid var(--red) !important; }
-        .status-devuelto { background-color: var(--green) !important; color: #fff !important; border: 3px solid var(--green) !important; }
+        .status-emision { background-color: var(--yellow) !important; color: #000 !important; border-color: var(--yellow) !important; }
+        .status-registrado { background-color: var(--red) !important; color: #fff !important; border-color: var(--red) !important; }
+        .status-devuelto { background-color: var(--green) !important; color: #fff !important; border-color: var(--green) !important; }
 
         .field { margin-bottom: 10px; }
         label { display: block; font-size: 10px; font-weight: bold; color: var(--blue); margin-bottom: 3px; text-transform: uppercase; }
@@ -32,17 +31,16 @@
         canvas { width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
         
         .no-print { width: 100%; max-width: 480px; margin-top: 15px; display: flex; flex-direction: column; gap: 8px; }
-        .btn { padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 13px; color: white; }
+        .btn { padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 13px; color: white; transition: 0.2s; }
         .btn-search { background: var(--blue); }
         .btn-save { background: var(--green); }
         .btn-wa { background: var(--wa); border: 2px solid #1ebea5; }
+        .btn-return { background: var(--purple); display: none; }
 
         @media print {
             .no-print { display: none !important; }
             body { padding: 0; background: white; }
             #printableArea { box-shadow: none; border: 1px solid #000; max-width: 100%; margin: 0; }
-            /* Forzar el texto en blanco si el fondo es oscuro */
-            .status-registrado, .status-devuelto { color: #fff !important; }
         }
     </style>
 </head>
@@ -68,9 +66,9 @@
         <input type="text" id="busquedaId" style="flex:1; border-radius: 8px 0 0 8px; border:1px solid #ccc; padding:10px;" placeholder="Ingresar ID...">
         <button class="btn btn-search" style="border-radius: 0 8px 8px 0; padding:10px 20px;" onclick="buscarIDB()">BUSCAR</button>
     </div>
-    <button id="btnWhatsApp" class="btn btn-wa" onclick="enviarWhatsApp()">WhatsApp 📱</button>
+    <button id="btnWhatsApp" class="btn btn-wa" onclick="enviarWhatsApp()">Enviar por WhatsApp 📱</button>
     <button id="btnFinalizar" class="btn btn-save" onclick="finalizarProceso()">Finalizar y Registrar</button>
-    <button id="btnDevolver" class="btn" style="background:var(--purple); display:none;" onclick="devolverIDB()">Registrar Devolución</button>
+    <button id="btnDevolver" class="btn btn-return" onclick="devolverIDB()">Registrar Devolución</button>
     <button class="btn" style="background:#7f8c8d;" onclick="nuevo()">Limpiar / Nuevo</button>
 </div>
 
@@ -80,8 +78,8 @@
     const ctx = canvas.getContext('2d');
     let dibujando = false;
 
-    // MOTOR INDEXED DB
-    const request = indexedDB.open("AGA_S25_V3", 1);
+    // MOTOR INDEXED DB - VERSIÓN FINAL
+    const request = indexedDB.open("AGA_S25_GOLD", 1);
     request.onupgradeneeded = (e) => {
         db = e.target.result;
         if (!db.objectStoreNames.contains("vales")) db.createObjectStore("vales", { keyPath: "id" });
@@ -127,6 +125,7 @@
 
     function buscarIDB() {
         const id = document.getElementById('busquedaId').value.trim();
+        if(!id) return;
         const tx = db.transaction("vales", "readonly");
         const store = tx.objectStore("vales");
         const req = store.get(id);
@@ -150,12 +149,19 @@
                     document.getElementById('btnDevolver').style.display = "block";
                 }
                 document.getElementById('btnFinalizar').style.display = "none";
-            } else { alert("No encontrado"); }
+            } else { alert("ID no encontrado."); }
         };
     }
 
+    // FINALIZAR: SECUENCIA DE RENDERIZADO FORZADO
     function finalizarProceso() {
         if(!document.getElementById('producto').value) return alert("Falta Producto");
+        
+        // 1. Cambiar estado visual antes de guardar
+        const st = document.getElementById('statusTxt');
+        st.className = "status status-registrado";
+        st.innerText = "Estado: En Custodia (Registrado)";
+
         const vale = {
             id: document.getElementById('idVale').value,
             fecha: document.getElementById('fecha').value,
@@ -165,16 +171,18 @@
             firma: canvas.toDataURL(),
             estado: "REGISTRADO"
         };
+
+        // 2. Guardar en Base de Datos
         const tx = db.transaction("vales", "readwrite");
         tx.objectStore("vales").put(vale);
+
         tx.oncomplete = () => {
-            const st = document.getElementById('statusTxt');
-            st.className = "status status-registrado";
-            st.innerText = "Estado: En Custodia (Registrado)";
+            // 3. Pausa de renderizado profunda para el S25
             setTimeout(() => { 
                 window.print(); 
-                setTimeout(() => { nuevo(); }, 1200); 
-            }, 800);
+                // 4. Limpieza total después del PDF
+                setTimeout(() => { nuevo(); }, 1500); 
+            }, 1000);
         };
     }
 
@@ -183,19 +191,22 @@
         const tx = db.transaction("vales", "readwrite");
         const store = tx.objectStore("vales");
         const req = store.get(id);
+
         req.onsuccess = () => {
             const data = req.result;
             data.estado = "DEVUELTO";
             data.fecha = "Cerrado: " + new Date().toLocaleString();
             store.put(data);
+
             const st = document.getElementById('statusTxt');
             st.className = "status status-devuelto";
             st.innerText = "Estado: Devolución Completada";
             document.getElementById('fecha').value = data.fecha;
+
             setTimeout(() => { 
                 window.print(); 
-                setTimeout(() => { nuevo(); }, 1200);
-            }, 800);
+                setTimeout(() => { nuevo(); }, 1500);
+            }, 1000);
         };
     }
 
