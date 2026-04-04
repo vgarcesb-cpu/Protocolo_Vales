@@ -3,138 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistema AGA | Protocolo</title>
+    <title>Protocolo AGA</title>
     <style>
         :root { --blue: #2c3e50; --green: #27ae60; --yellow: #f1c40f; --red: #e74c3c; --purple: #8e44ad; }
-        body { font-family: 'Segoe UI', sans-serif; background: #ecf0f1; padding: 15px; display: flex; flex-direction: column; align-items: center; margin: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #ecf0f1; padding: 10px; display: flex; flex-direction: column; align-items: center; margin: 0; }
         
-        .card { background: white; width: 100%; max-width: 500px; padding: 20px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); border-top: 10px solid var(--blue); box-sizing: border-box; position: relative; }
+        /* Contenedor principal */
+        #printableArea { background: white; width: 100%; max-width: 480px; padding: 20px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-top: 10px solid var(--blue); box-sizing: border-box; }
         
-        h2 { text-align: center; color: var(--blue); margin: 0 0 15px 0; font-size: 1.2em; text-transform: uppercase; }
+        h2 { text-align: center; color: var(--blue); margin: 0 0 15px 0; font-size: 1.1em; text-transform: uppercase; }
         
-        .search-container { display: flex; gap: 8px; margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px; border: 1px solid #ddd; }
-        .search-container input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
-        
-        /* ESTADOS CON FORZADO DE COLOR PARA IMPRESIÓN */
+        /* Estados forzados para PDF S25 */
         .status { 
             text-align: center; font-weight: bold; padding: 12px; margin-bottom: 15px; border-radius: 6px; 
-            font-size: 14px; text-transform: uppercase; border: 1px solid rgba(0,0,0,0.1);
-            print-color-adjust: exact; -webkit-print-color-adjust: exact; 
+            font-size: 14px; text-transform: uppercase; border: 2px solid rgba(0,0,0,0.1);
+            -webkit-print-color-adjust: exact; print-color-adjust: exact; 
         }
         .status-emision { background-color: var(--yellow) !important; color: #000 !important; }
         .status-registrado { background-color: var(--red) !important; color: #fff !important; }
         .status-devuelto { background-color: var(--green) !important; color: #fff !important; }
 
-        .field { margin-bottom: 12px; }
-        label { display: block; font-size: 11px; font-weight: bold; color: var(--blue); margin-bottom: 4px; text-transform: uppercase; }
-        input, textarea { width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 5px; box-sizing: border-box; font-size: 14px; color: #000; }
-        input[readonly] { background: #f1f3f4; font-weight: bold; }
+        .field { margin-bottom: 10px; }
+        label { display: block; font-size: 10px; font-weight: bold; color: var(--blue); margin-bottom: 3px; text-transform: uppercase; }
+        input, textarea { width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 5px; box-sizing: border-box; font-size: 14px; color: #000; background: #fff; }
+        input[readonly] { background: #f8f9fa; border: 1px solid #eee; }
 
-        #signature-wrap { border: 2px dashed var(--blue); background: #fff; border-radius: 8px; height: 180px; position: relative; margin-top: 5px; }
+        /* Firma */
+        #sig-wrap { border: 2px dashed var(--blue); background: #fff; border-radius: 8px; height: 160px; position: relative; }
         canvas { width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
         
-        .btn-group { display: flex; flex-direction: column; gap: 8px; margin-top: 15px; }
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; text-transform: uppercase; }
-        
-        .btn-save { background: var(--green); color: white; }
-        .btn-return { background: var(--purple); color: white; display: none; }
-        .btn-new { background: var(--blue); color: white; }
-        .btn-clear { background: #95a5a6; color: white; padding: 6px 12px; width: auto; font-size: 11px; margin-top: 5px; float: right; border-radius: 4px; border: none; }
+        /* Botonera */
+        .no-print { width: 100%; max-width: 480px; margin-top: 15px; display: flex; flex-direction: column; gap: 8px; }
+        .btn { padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 13px; color: white; }
+        .btn-search { background: var(--blue); }
+        .btn-save { background: var(--green); }
+        .btn-return { background: var(--purple); display: none; }
+        .btn-new { background: #7f8c8d; }
+        .btn-clear { background: #95a5a6; padding: 5px 10px; width: auto; font-size: 10px; float: right; margin-top: 5px; }
 
         @media print {
-            .search-container, .btn, .btn-clear, .btn-group { display: none !important; }
-            body { background: white; padding: 0; }
-            .card { box-shadow: none; border: 1px solid #000; width: 100%; max-width: 100%; }
-            /* Asegurar que el estado se vea en el PDF */
-            .status { border: 2px solid #000 !important; margin-top: 10px; }
+            .no-print, .btn-clear { display: none !important; }
+            body { padding: 0; background: white; }
+            #printableArea { box-shadow: none; border: 1px solid #000; max-width: 100%; }
         }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2 id="tituloPrincipal">AGA: PROTOCOLO DE CUSTODIA</h2>
-
-    <div class="search-container">
-        <input type="text" id="busquedaId" placeholder="Buscar ID para Devolución...">
-        <button onclick="buscarRegistro()" style="background:var(--blue); color:white; border:none; padding:10px; border-radius:5px; cursor:pointer;">BUSCAR</button>
-    </div>
-
-    <div id="statusTxt" class="status status-emision">ESTADO: EN EMISIÓN</div>
+<div id="printableArea">
+    <h2 id="titulo">Protocolo de Custodia AGA</h2>
+    
+    <div id="statusTxt" class="status status-emision">Estado: En Emisión</div>
 
     <div class="field">
-        <label>ID de Transacción</label>
+        <label>ID Transacción</label>
         <input type="text" id="idVale" readonly>
     </div>
 
     <div class="field">
-        <label>Fecha del Movimiento</label>
+        <label>Fecha</label>
         <input type="text" id="fecha" readonly>
     </div>
 
     <div class="field">
-        <label>Descripción del BMI (Equipo)</label>
-        <input type="text" id="producto" placeholder="...">
+        <label>Descripción Equipo (BMI)</label>
+        <input type="text" id="producto" placeholder="Radio, Notebook, etc...">
     </div>
 
     <div class="field">
-        <label>Responsable de Cargo</label>
-        <input type="text" id="responsable" placeholder="...">
+        <label>Responsable</label>
+        <input type="text" id="responsable" placeholder="Grado y Nombre">
     </div>
 
     <div class="field">
-        <label>Observaciones Técnicas</label>
+        <label>Observaciones</label>
         <textarea id="obs" rows="2"></textarea>
     </div>
 
     <div class="field">
-        <label>Firma de Responsabilidad</label>
-        <div id="signature-wrap">
+        <label>Firma</label>
+        <div id="sig-wrap">
             <canvas id="canvas"></canvas>
         </div>
-        <button id="btnClear" class="btn-clear" onclick="limpiarCanvas()">BORRAR FIRMA</button>
+        <button class="btn-clear no-print" onclick="limpiar()">Borrar Firma</button>
     </div>
+</div>
 
-    <div class="btn-group">
-        <button id="btnFinalizar" class="btn btn-save" onclick="finalizarYRegistrar()">FINALIZAR Y REGISTRAR ENTREGA</button>
-        <button id="btnDevolucion" class="btn btn-return" onclick="marcarDevuelto()">REGISTRAR DEVOLUCIÓN (CERRAR CICLO)</button>
-        <button class="btn btn-new" onclick="nuevaEmision()">NUEVO PROCEDIMIENTO</button>
+<div class="no-print">
+    <div style="display:flex; gap:5px;">
+        <input type="text" id="busquedaId" style="flex:1;" placeholder="ID a buscar...">
+        <button class="btn btn-search" style="padding:10px;" onclick="buscar()">Buscar</button>
     </div>
+    <button id="btnFinalizar" class="btn btn-save" onclick="guardar(true)">Finalizar y Generar PDF</button>
+    <button id="btnDevolver" class="btn btn-return" onclick="devolver()">Registrar Devolución</button>
+    <button class="btn btn-new" onclick="nuevo()">Nuevo Procedimiento</button>
 </div>
 
 <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
-    let drawing = false;
+    let dibujando = false;
 
-    window.onload = () => { nuevaEmision(); setupCanvas(); };
+    window.onload = () => { nuevo(); ajustarCanvas(); };
 
-    function setupCanvas() {
+    function ajustarCanvas() {
         const rect = canvas.getBoundingClientRect();
-        canvas.width = rect.width;
-        canvas.height = rect.height;
+        canvas.width = rect.width; canvas.height = rect.height;
         ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.strokeStyle = '#000';
     }
 
-    function nuevaEmision() {
-        document.getElementById('idVale').value = "AGA-2026-" + Math.floor(Math.random()*8999+1000);
+    function nuevo() {
+        document.getElementById('idVale').value = "AGA-" + Math.floor(Date.now() / 10000);
         document.getElementById('fecha').value = new Date().toLocaleString();
         document.getElementById('producto').value = "";
         document.getElementById('responsable').value = "";
         document.getElementById('obs').value = "";
-        document.getElementById('tituloPrincipal').innerText = "AGA: PROTOCOLO DE CUSTODIA";
-        
-        const status = document.getElementById('statusTxt');
-        status.innerText = "ESTADO: EN EMISIÓN";
-        status.className = "status status-emision";
-        
+        document.getElementById('statusTxt').className = "status status-emision";
+        document.getElementById('statusTxt').innerText = "Estado: En Emisión";
         document.getElementById('btnFinalizar').style.display = "block";
-        document.getElementById('btnDevolucion').style.display = "none";
-        document.getElementById('btnClear').style.display = "block";
-        limpiarCanvas();
+        document.getElementById('btnDevolver').style.display = "none";
+        limpiar();
     }
 
-    // Dibujo Híbrido
     function getPos(e) {
         const rect = canvas.getBoundingClientRect();
         return {
@@ -142,55 +132,47 @@
             y: (e.touches ? e.touches[0].clientY : e.clientY) - rect.top
         };
     }
-    function start(e) { drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); if(e.touches) e.preventDefault(); }
-    function move(e) { if(!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); if(e.touches) e.preventDefault(); }
 
-    canvas.addEventListener('mousedown', start);
-    canvas.addEventListener('mousemove', move);
-    window.addEventListener('mouseup', () => drawing = false);
-    canvas.addEventListener('touchstart', start, {passive: false});
-    canvas.addEventListener('touchmove', move, {passive: false});
-    canvas.addEventListener('touchend', () => drawing = false);
+    function empezar(e) { dibujando = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); if(e.touches) e.preventDefault(); }
+    function mover(e) { if(!dibujando) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); if(e.touches) e.preventDefault(); }
 
-    function limpiarCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+    canvas.addEventListener('mousedown', empezar);
+    canvas.addEventListener('mousemove', mover);
+    window.addEventListener('mouseup', () => dibujando = false);
+    canvas.addEventListener('touchstart', empezar, {passive: false});
+    canvas.addEventListener('touchmove', mover, {passive: false});
+    canvas.addEventListener('touchend', () => dibujando = false);
 
-    function buscarRegistro() {
+    function limpiar() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+
+    function buscar() {
         const id = document.getElementById('busquedaId').value.trim();
         const db = JSON.parse(localStorage.getItem('AGA_DB')) || [];
         const reg = db.find(r => r.id === id);
-
         if(reg) {
             document.getElementById('idVale').value = reg.id;
             document.getElementById('fecha').value = reg.fecha;
             document.getElementById('producto').value = reg.producto;
             document.getElementById('responsable').value = reg.responsable;
             document.getElementById('obs').value = reg.obs;
-            
             const img = new Image();
-            img.onload = () => { limpiarCanvas(); ctx.drawImage(img, 0, 0); };
+            img.onload = () => { limpiar(); ctx.drawImage(img, 0, 0); };
             img.src = reg.firma;
-
-            const status = document.getElementById('statusTxt');
+            
+            const st = document.getElementById('statusTxt');
             if(reg.estado === "DEVUELTO") {
-                status.innerText = "ESTADO: DEVOLUCIÓN COMPLETADA";
-                status.className = "status status-devuelto";
-                document.getElementById('tituloPrincipal').innerText = "ACTA DE RECEPCIÓN / DEVOLUCIÓN";
-                document.getElementById('btnFinalizar').style.display = "none";
-                document.getElementById('btnDevolucion').style.display = "none";
-                document.getElementById('btnClear').style.display = "none";
+                st.className = "status status-devuelto"; st.innerText = "Estado: Devolución Completada";
+                document.getElementById('btnDevolver').style.display = "none";
             } else {
-                status.innerText = "ESTADO: EQUIPO EN CUSTODIA (REGISTRADO)";
-                status.className = "status status-registrado";
-                document.getElementById('btnFinalizar').style.display = "none";
-                document.getElementById('btnDevolucion').style.display = "block";
-                document.getElementById('btnClear').style.display = "none";
+                st.className = "status status-registrado"; st.innerText = "Estado: En Custodia (Registrado)";
+                document.getElementById('btnDevolver').style.display = "block";
             }
+            document.getElementById('btnFinalizar').style.display = "none";
         } else { alert("ID no encontrado."); }
     }
 
-    function finalizarYRegistrar() {
-        if(!document.getElementById('producto').value || !document.getElementById('responsable').value) return alert("Complete los datos.");
-        
+    function guardar(imprimir) {
+        if(!document.getElementById('producto').value) return alert("Falta producto");
         const data = {
             id: document.getElementById('idVale').value,
             fecha: document.getElementById('fecha').value,
@@ -200,43 +182,32 @@
             firma: canvas.toDataURL(),
             estado: "REGISTRADO"
         };
-
         let db = JSON.parse(localStorage.getItem('AGA_DB')) || [];
         db.push(data);
         localStorage.setItem('AGA_DB', JSON.stringify(db));
-
-        // Actualizar UI antes de imprimir
-        document.getElementById('statusTxt').innerText = "ESTADO: EQUIPO EN CUSTODIA (REGISTRADO)";
-        document.getElementById('statusTxt').className = "status status-registrado";
         
-        document.title = "Registro_" + data.id;
-        window.print();
+        if(imprimir) {
+            // Pequeña pausa para que el S25 procese los colores antes de abrir el PDF
+            setTimeout(() => { window.print(); }, 300);
+        }
     }
 
-    function marcarDevuelto() {
+    function devolver() {
         const id = document.getElementById('idVale').value;
         let db = JSON.parse(localStorage.getItem('AGA_DB')) || [];
-        const index = db.findIndex(r => r.id === id);
-        
-        if(index !== -1) {
-            db[index].estado = "DEVUELTO";
-            db[index].fecha = "DEVUELTO EL: " + new Date().toLocaleString();
+        const i = db.findIndex(r => r.id === id);
+        if(i !== -1) {
+            db[i].estado = "DEVUELTO";
+            db[i].fecha = "Devuelto: " + new Date().toLocaleString();
             localStorage.setItem('AGA_DB', JSON.stringify(db));
             
-            // CAMBIO VISUAL INMEDIATO PARA LA IMPRESIÓN
-            const status = document.getElementById('statusTxt');
-            status.innerText = "ESTADO: DEVOLUCIÓN COMPLETADA";
-            status.className = "status status-devuelto";
-            document.getElementById('tituloPrincipal').innerText = "ACTA DE RECEPCIÓN / DEVOLUCIÓN";
-            document.getElementById('fecha').value = db[index].fecha;
+            const st = document.getElementById('statusTxt');
+            st.className = "status status-devuelto";
+            st.innerText = "Estado: Devolución Completada";
+            document.getElementById('fecha').value = db[i].fecha;
             
-            document.title = "Devolucion_" + id;
-            
-            // Disparar impresión con el estado VERDE visible
-            setTimeout(() => { 
-                window.print();
-                alert("Ciclo Cerrado Exitosamente.");
-            }, 500);
+            // Forzar espera para que la vista previa no se bloquee
+            setTimeout(() => { window.print(); }, 500);
         }
     }
 </script>
