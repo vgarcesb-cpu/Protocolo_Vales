@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AGA | Protocolo Profesional</title>
+    <title>AGA | Sistema Profesional</title>
     <style>
         :root { --blue: #2c3e50; --green: #27ae60; --yellow: #f1c40f; --red: #e74c3c; --purple: #8e44ad; --wa: #25d366; }
         body { font-family: 'Segoe UI', sans-serif; background: #ecf0f1; padding: 10px; display: flex; flex-direction: column; align-items: center; margin: 0; }
@@ -22,7 +22,7 @@
         .field { margin-bottom: 10px; }
         label { display: block; font-size: 10px; font-weight: bold; color: var(--blue); margin-bottom: 3px; text-transform: uppercase; }
         input, textarea { width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 5px; box-sizing: border-box; font-size: 14px; color: #000; }
-        input[readonly] { background: #f8f9fa; font-weight: bold; }
+        input[readonly] { background: #f8f9fa; font-weight: bold; color: var(--blue); }
 
         #sig-wrap { border: 2px dashed var(--blue); background: #fff; border-radius: 8px; height: 160px; position: relative; }
         canvas { width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
@@ -31,7 +31,7 @@
         .btn { padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 13px; color: white; transition: 0.2s; }
         .btn-search { background: var(--blue); }
         .btn-save { background: var(--green); }
-        .btn-wa { background: var(--wa); display: none; }
+        .btn-wa { background: var(--wa); display: none; border: 2px solid #1ebea5; }
         .btn-return { background: var(--purple); display: none; }
 
         @media print {
@@ -49,7 +49,7 @@
 
     <div class="field"><label>ID Transacción</label><input type="text" id="idVale" readonly></div>
     <div class="field"><label>Fecha</label><input type="text" id="fecha" readonly></div>
-    <div class="field"><label>Equipo (BMI)</label><input type="text" id="producto" placeholder="Radio, Notebook, etc..."></div>
+    <div class="field"><label>Equipo (BMI)</label><input type="text" id="producto" placeholder="Describa el equipo..."></div>
     <div class="field"><label>Responsable</label><input type="text" id="responsable" placeholder="Nombre completo"></div>
     <div class="field"><label>Observaciones</label><textarea id="obs" rows="2"></textarea></div>
     <div class="field">
@@ -60,13 +60,13 @@
 
 <div class="no-print">
     <div style="display:flex; gap:0;">
-        <input type="text" id="busquedaId" style="flex:1; border-radius: 8px 0 0 8px; border:1px solid #ccc; padding:10px;" placeholder="Ingresar ID...">
+        <input type="text" id="busquedaId" style="flex:1; border-radius: 8px 0 0 8px; border:1px solid #ccc; padding:10px;" placeholder="Buscar ID...">
         <button class="btn btn-search" style="border-radius: 0 8px 8px 0; padding:10px 20px;" onclick="buscarIDB()">BUSCAR</button>
     </div>
-    <button id="btnFinalizar" class="btn btn-save" onclick="finalizarProceso()">Finalizar y Registrar</button>
-    <button id="btnDevolver" class="btn" style="background:var(--purple); display:none;" onclick="devolverIDB()">Registrar Devolución</button>
-    <button id="btnWhatsApp" class="btn btn-wa" onclick="enviarWhatsApp()">Compartir por WhatsApp 📱</button>
-    <button class="btn" style="background:#7f8c8d;" onclick="nuevo()">Limpiar / Nuevo</button>
+    <button id="btnWhatsApp" class="btn btn-wa" onclick="enviarWhatsApp()">COMPARTIR POR WHATSAPP 📱</button>
+    <button id="btnFinalizar" class="btn btn-save" onclick="finalizarProceso()">FINALIZAR Y REGISTRAR</button>
+    <button id="btnDevolver" class="btn" style="background:var(--purple); display:none;" onclick="devolverIDB()">REGISTRAR DEVOLUCIÓN</button>
+    <button class="btn" style="background:#7f8c8d;" onclick="nuevo()">LIMPIAR / NUEVO</button>
 </div>
 
 <script>
@@ -75,8 +75,8 @@
     const ctx = canvas.getContext('2d');
     let dibujando = false;
 
-    // 1. MOTOR INDEXED DB
-    const request = indexedDB.open("AGA_DB_PRO", 1);
+    // MOTOR INDEXED DB
+    const request = indexedDB.open("AGA_DB_FINAL", 1);
     request.onupgradeneeded = (e) => {
         db = e.target.result;
         db.createObjectStore("vales", { keyPath: "id" });
@@ -100,7 +100,7 @@
         
         document.getElementById('btnFinalizar').style.display = "block";
         document.getElementById('btnDevolver').style.display = "none";
-        document.getElementById('btnWhatsApp').style.display = "none";
+        document.getElementById('btnWhatsApp').style.display = "none"; // Oculto al inicio
         
         limpiarCanvas();
         ajustarCanvas();
@@ -126,19 +126,16 @@
 
     function limpiarCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
-    // 2. FLUJO DE GUARDADO REPARADO
+    // FLUJO DE GUARDADO Y LIMPIEZA
     function finalizarProceso() {
         if(!document.getElementById('producto').value || !document.getElementById('responsable').value) {
-            alert("⚠️ Falta Producto o Responsable");
-            return;
+            alert("⚠️ Complete Producto y Responsable"); return;
         }
 
-        // A. CAMBIAR ESTADO VISUAL PRIMERO (Para el PDF)
         const st = document.getElementById('statusTxt');
         st.className = "status status-registrado";
         st.innerText = "Estado: En Custodia (Registrado)";
 
-        // B. GUARDAR EN INDEXED DB
         const vale = {
             id: document.getElementById('idVale').value,
             fecha: document.getElementById('fecha').value,
@@ -150,22 +147,22 @@
         };
 
         const tx = db.transaction("vales", "readwrite");
-        const store = tx.objectStore("vales");
-        store.put(vale);
+        tx.objectStore("vales").put(vale);
 
         tx.oncomplete = () => {
-            // C. DISPARAR IMPRESIÓN
+            // Muestra WhatsApp antes de imprimir por si acaso
+            document.getElementById('btnWhatsApp').style.display = "block";
             window.print();
             
-            // D. LIMPIAR DESPUÉS DE CERRAR PDF
             setTimeout(() => {
-                alert("Entrega Registrada. El sistema se limpiará para un nuevo vale.");
+                alert("Registro Exitoso. Enviando datos a WhatsApp...");
+                enviarWhatsApp(); // Dispara WhatsApp automáticamente
                 nuevo();
             }, 1000);
         };
     }
 
-    // 3. BUSQUEDA
+    // BUSQUEDA
     function buscarIDB() {
         const id = document.getElementById('busquedaId').value.trim();
         const tx = db.transaction("vales", "readonly");
@@ -193,7 +190,7 @@
                     document.getElementById('btnDevolver').style.display = "block";
                 }
                 document.getElementById('btnFinalizar').style.display = "none";
-                document.getElementById('btnWhatsApp').style.display = "block";
+                document.getElementById('btnWhatsApp').style.display = "block"; // Se activa en búsqueda
             } else { alert("ID no encontrado."); }
         };
     }
@@ -207,22 +204,23 @@
         req.onsuccess = () => {
             const data = req.result;
             data.estado = "DEVUELTO";
-            data.fecha = "Cerrado: " + new Date().toLocaleString();
+            data.fecha = "Devuelto: " + new Date().toLocaleString();
             store.put(data);
 
-            // Refrescar visual para PDF
             document.getElementById('statusTxt').className = "status status-devuelto";
             document.getElementById('statusTxt').innerText = "Estado: Devolución Completada";
             document.getElementById('fecha').value = data.fecha;
 
             window.print();
             setTimeout(() => { 
-                alert("Ciclo Cerrado Correctamente.");
+                alert("Ciclo Cerrado.");
+                enviarWhatsApp();
                 nuevo(); 
             }, 1000);
         };
     }
 
+    // FUNCIÓN WHATSAPP DINÁMICA
     function enviarWhatsApp() {
         const id = document.getElementById('idVale').value;
         const prod = document.getElementById('producto').value;
