@@ -13,10 +13,7 @@
         .status { 
             text-align: center; font-weight: bold; padding: 12px; margin-bottom: 15px; border-radius: 6px; 
             font-size: 14px; text-transform: uppercase; border: 2px solid rgba(0,0,0,0.1);
-            /* FORZADO CRÍTICO DE COLOR PARA PDF */
-            -webkit-print-color-adjust: exact !important; 
-            print-color-adjust: exact !important; 
-            color-adjust: exact !important;
+            -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; 
         }
         .status-emision { background-color: var(--yellow) !important; color: #000 !important; }
         .status-registrado { background-color: var(--red) !important; color: #fff !important; }
@@ -52,8 +49,8 @@
 
     <div class="field"><label>ID Transacción</label><input type="text" id="idVale" readonly></div>
     <div class="field"><label>Fecha</label><input type="text" id="fecha" readonly></div>
-    <div class="field"><label>Equipo (BMI)</label><input type="text" id="producto" placeholder="Describa el equipo..."></div>
-    <div class="field"><label>Responsable</label><input type="text" id="responsable" placeholder="Nombre completo"></div>
+    <div class="field"><label>Equipo (BMI)</label><input type="text" id="producto"></div>
+    <div class="field"><label>Responsable</label><input type="text" id="responsable"></div>
     <div class="field"><label>Observaciones</label><textarea id="obs" rows="2"></textarea></div>
     <div class="field">
         <label>Firma</label>
@@ -66,7 +63,7 @@
         <input type="text" id="busquedaId" style="flex:1; border-radius: 8px 0 0 8px; border:1px solid #ccc; padding:10px;" placeholder="Buscar ID...">
         <button class="btn btn-search" style="border-radius: 0 8px 8px 0; padding:10px 20px;" onclick="buscarIDB()">BUSCAR</button>
     </div>
-    <button id="btnWhatsApp" class="btn btn-wa" onclick="enviarWhatsApp()">Enviar por WhatsApp 📱</button>
+    <button id="btnWhatsApp" class="btn btn-wa" onclick="enviarWhatsApp()">WhatsApp 📱</button>
     <button id="btnFinalizar" class="btn btn-save" onclick="finalizarProceso()">Finalizar y Registrar</button>
     <button id="btnDevolver" class="btn" style="background:var(--purple); display:none;" onclick="devolverIDB()">Registrar Devolución</button>
     <button class="btn" style="background:#7f8c8d;" onclick="nuevo()">Limpiar / Nuevo</button>
@@ -78,11 +75,13 @@
     const ctx = canvas.getContext('2d');
     let dibujando = false;
 
-    // MOTOR INDEXED DB
-    const request = indexedDB.open("AGA_DB_FIXED_FINAL", 1);
+    // MOTOR INDEXED DB - Nombre de DB nuevo para evitar conflictos
+    const request = indexedDB.open("AGA_DB_FINAL_V2", 1);
     request.onupgradeneeded = (e) => {
         db = e.target.result;
-        db.createObjectStore("vales", { keyPath: "id" });
+        if (!db.objectStoreNames.contains("vales")) {
+            db.createObjectStore("vales", { keyPath: "id" });
+        }
     };
     request.onsuccess = (e) => { db = e.target.result; nuevo(); };
 
@@ -123,11 +122,15 @@
 
     function limpiarCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
+    // BUSCADOR REPARADO - Búsqueda Directa en IDB
     function buscarIDB() {
-        const id = document.getElementById('busquedaId').value.trim();
+        const idBuscado = document.getElementById('busquedaId').value.trim();
+        if(!idBuscado) return;
+
         const tx = db.transaction("vales", "readonly");
         const store = tx.objectStore("vales");
-        const req = store.get(id);
+        const req = store.get(idBuscado);
+
         req.onsuccess = () => {
             const r = req.result;
             if(r) {
@@ -136,9 +139,11 @@
                 document.getElementById('producto').value = r.producto;
                 document.getElementById('responsable').value = r.responsable;
                 document.getElementById('obs').value = r.obs;
+                
                 const img = new Image();
                 img.onload = () => { limpiarCanvas(); ctx.drawImage(img, 0, 0); };
                 img.src = r.firma;
+
                 const st = document.getElementById('statusTxt');
                 if(r.estado === "DEVUELTO") {
                     st.className = "status status-devuelto"; st.innerText = "Estado: Devolución Completada";
@@ -148,21 +153,17 @@
                     document.getElementById('btnDevolver').style.display = "block";
                 }
                 document.getElementById('btnFinalizar').style.display = "none";
-            } else { alert("ID no encontrado."); }
+            } else { alert("ID no encontrado en la base de datos."); }
         };
     }
 
-    // REPARACIÓN CLAVE: SECUENCIA DE COLOR FORZADA
+    // FINALIZAR: Guardar -> Pintar -> Imprimir -> Limpiar
     function finalizarProceso() {
         if(!document.getElementById('producto').value) return alert("Falta Producto");
         
-        // 1. Cambiamos el estado visual inmediatamente
-        const st = document.getElementById('statusTxt');
-        st.className = "status status-registrado";
-        st.innerText = "Estado: En Custodia (Registrado)";
-
+        const idActual = document.getElementById('idVale').value;
         const vale = {
-            id: document.getElementById('idVale').value,
+            id: idActual,
             fecha: document.getElementById('fecha').value,
             producto: document.getElementById('producto').value,
             responsable: document.getElementById('responsable').value,
@@ -171,24 +172,34 @@
             estado: "REGISTRADO"
         };
 
+        // 1. Guardar en Base de Datos PRIMERO
         const tx = db.transaction("vales", "readwrite");
-        tx.objectStore("vales").put(vale);
+        const store = tx.objectStore("vales");
+        store.put(vale);
 
         tx.oncomplete = () => {
-            // 2. Pausa técnica para que el navegador "pinte" el rojo antes de generar el PDF
+            // 2. Pintar estado en pantalla
+            const st = document.getElementById('statusTxt');
+            st.className = "status status-registrado";
+            st.innerText = "Estado: En Custodia (Registrado)";
+
+            // 3. Pequeña pausa para asegurar el renderizado antes del PDF
             setTimeout(() => { 
                 window.print(); 
-                // 3. Pausa larga para que el usuario guarde y luego limpiar
-                setTimeout(() => { nuevo(); }, 2000); 
-            }, 600);
+                // 4. Limpiar pantalla automáticamente tras 2 segundos
+                setTimeout(() => { 
+                    alert("Proceso Finalizado y Guardado.");
+                    nuevo(); 
+                }, 2000); 
+            }, 800);
         };
     }
 
     function devolverIDB() {
-        const id = document.getElementById('idVale').value;
+        const idActual = document.getElementById('idVale').value;
         const tx = db.transaction("vales", "readwrite");
         const store = tx.objectStore("vales");
-        const req = store.get(id);
+        const req = store.get(idActual);
 
         req.onsuccess = () => {
             const data = req.result;
@@ -203,8 +214,11 @@
 
             setTimeout(() => { 
                 window.print(); 
-                setTimeout(() => { nuevo(); }, 2000);
-            }, 600);
+                setTimeout(() => { 
+                    alert("Ciclo Cerrado Correctamente.");
+                    nuevo(); 
+                }, 2000);
+            }, 800);
         };
     }
 
