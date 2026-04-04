@@ -3,73 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AGA PROTOCOLO | VICTORIA TOTAL</title>
+    <title>AGA PROTOCOLO | PROFESIONAL</title>
     <style>
-        :root { --blue: #2c3e50; --green: #27ae60; --yellow: #f1c40f; --red: #e74c3c; --purple: #8e44ad; --wa: #25d366; }
-        body { font-family: 'Segoe UI', sans-serif; background: #ecf0f1; padding: 10px; display: flex; flex-direction: column; align-items: center; margin: 0; }
+        :root { --blue: #1a3a5a; --green: #27ae60; --yellow: #f1c40f; --red: #e74c3c; --gray: #f4f7f6; }
         
-        #printableArea { background: white; width: 100%; max-width: 480px; padding: 20px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-top: 10px solid var(--blue); box-sizing: border-box; }
-        
-        /* REFUERZO DE COLOR PARA IMPRESIÓN MÓVIL */
-        .status { 
-            text-align: center; font-weight: bold; padding: 12px; margin-bottom: 15px; border-radius: 6px; 
-            font-size: 14px; text-transform: uppercase;
-            -webkit-print-color-adjust: exact !important; 
-            print-color-adjust: exact !important;
-            border: 4px solid rgba(0,0,0,0.1) !important;
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #d0d7de; padding: 10px; margin: 0; display: flex; flex-direction: column; align-items: center; }
+
+        /* Contenedor Principal Estilo App Adquisiciones */
+        #printableArea { 
+            background: white; 
+            width: 100%; 
+            max-width: 500px; 
+            padding: 25px; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
+            box-sizing: border-box;
+            border: 1px solid #bdc3c7;
         }
-        .status-emision { background-color: var(--yellow) !important; color: #000 !important; border-color: var(--yellow) !important; }
-        .status-registrado { background-color: var(--red) !important; color: #fff !important; border-color: var(--red) !important; }
-        .status-devuelto { background-color: var(--green) !important; color: #fff !important; border-color: var(--green) !important; }
 
-        .field { margin-bottom: 10px; }
-        label { display: block; font-size: 10px; font-weight: bold; color: var(--blue); margin-bottom: 3px; text-transform: uppercase; }
-        input, textarea { width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 5px; box-sizing: border-box; font-size: 14px; color: #000; }
-        input[readonly] { background: #f8f9fa; font-weight: bold; color: var(--blue); }
+        .header-title { text-align: center; color: var(--blue); margin: 0 0 20px 0; font-size: 1.4em; font-weight: bold; text-transform: uppercase; border-bottom: 2px solid var(--blue); padding-bottom: 10px; }
 
-        #sig-wrap { border: 2px dashed var(--blue); background: #fff; border-radius: 8px; height: 160px; position: relative; }
-        canvas { width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
-        
-        .no-print { width: 100%; max-width: 480px; margin-top: 15px; display: flex; flex-direction: column; gap: 8px; }
-        .btn { padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 13px; color: white; transition: 0.2s; }
+        /* ESTADOS FORZADOS PARA PDF - DISEÑO DE BLOQUE */
+        .status-box {
+            text-align: center;
+            font-weight: bold;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            font-size: 15px;
+            text-transform: uppercase;
+            border: 4px solid #000 !important; /* Borde negro para que el PDF no lo ignore */
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        .status-emision { background-color: var(--yellow) !important; color: #000 !important; }
+        .status-registrado { background-color: var(--red) !important; color: #fff !important; }
+        .status-devuelto { background-color: var(--green) !important; color: #fff !important; }
+
+        .section-box { background: var(--gray); padding: 15px; border-radius: 15px; border: 1px solid #ddd; margin-bottom: 15px; }
+        .section-title { font-size: 11px; font-weight: bold; color: var(--blue); text-transform: uppercase; margin-bottom: 8px; display: block; border-left: 4px solid var(--blue); padding-left: 8px; }
+
+        input, textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 15px; background: #fff; }
+        input[readonly] { background: #e9ecef; font-weight: bold; color: var(--blue); border: none; }
+
+        #sig-wrap { background: #fff; border: 2px dashed var(--blue); border-radius: 12px; height: 180px; position: relative; margin-top: 5px; }
+        canvas { width: 100%; height: 100%; touch-action: none; }
+
+        .no-print { width: 100%; max-width: 500px; margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .btn { padding: 18px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 14px; color: white; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .btn-search { background: var(--blue); }
         .btn-save { background: var(--green); }
-        .btn-wa { background: var(--wa); border: 2px solid #1ebea5; }
-        .btn-return { background: var(--purple); display: none; }
+        .btn-wa { background: #25d366; }
 
         @media print {
             .no-print { display: none !important; }
-            body { padding: 0; background: white; }
-            #printableArea { box-shadow: none; border: 1px solid #000; max-width: 100%; margin: 0; }
+            body { background: white; padding: 0; }
+            #printableArea { box-shadow: none; border: none; width: 100%; max-width: 100%; padding: 0; }
+            .status-box { border: 5px solid #000 !important; } /* Máximo refuerzo en papel */
         }
     </style>
 </head>
 <body>
 
 <div id="printableArea">
-    <h2 style="text-align:center; color:var(--blue); margin-top:0;">PROTOCOLO AGA</h2>
-    <div id="statusTxt" class="status status-emision">Estado: En Emisión</div>
+    <div class="header-title">PROTOCOLOS AGA</div>
+    
+    <div id="statusTxt" class="status-box status-emision">ESTADO: EN EMISIÓN</div>
 
-    <div class="field"><label>ID Transacción</label><input type="text" id="idVale" readonly></div>
-    <div class="field"><label>Fecha</label><input type="text" id="fecha" readonly></div>
-    <div class="field"><label>Equipo (BMI)</label><input type="text" id="producto"></div>
-    <div class="field"><label>Responsable</label><input type="text" id="responsable"></div>
-    <div class="field"><label>Observaciones</label><textarea id="obs" rows="2"></textarea></div>
-    <div class="field">
-        <label>Firma</label>
+    <div class="section-box">
+        <span class="section-title">Identificación del Documento</span>
+        <div style="display: flex; gap: 10px;">
+            <div style="flex: 1;"><label style="font-size: 10px;">ID FOLIO</label><input type="text" id="idVale" readonly></div>
+            <div style="flex: 1;"><label style="font-size: 10px;">FECHA</label><input type="text" id="fecha" readonly></div>
+        </div>
+    </div>
+
+    <div class="section-box">
+        <span class="section-title">Detalles del Cargo</span>
+        <label style="font-size: 10px;">EQUIPO (BMI)</label>
+        <input type="text" id="producto" placeholder="Nombre del equipo">
+        <label style="font-size: 10px; margin-top: 10px; display: block;">RESPONSABLE</label>
+        <input type="text" id="responsable" placeholder="Grado y Nombre completo">
+    </div>
+
+    <div class="section-box">
+        <span class="section-title">Observaciones</span>
+        <textarea id="obs" rows="2" placeholder="Notas adicionales..."></textarea>
+    </div>
+
+    <div class="section-box">
+        <span class="section-title">Firma de Responsabilidad</span>
         <div id="sig-wrap"><canvas id="canvas"></canvas></div>
+        <button class="no-print" style="background:none; border:none; color:var(--red); font-size: 11px; cursor:pointer; width: 100%; text-align: right;" onclick="limpiarCanvas()">[ BORRAR FIRMA ]</button>
     </div>
 </div>
 
 <div class="no-print">
-    <div style="display:flex; gap:0;">
-        <input type="text" id="busquedaId" style="flex:1; border-radius: 8px 0 0 8px; border:1px solid #ccc; padding:10px;" placeholder="Ingresar ID...">
-        <button class="btn btn-search" style="border-radius: 0 8px 8px 0; padding:10px 20px;" onclick="buscarIDB()">BUSCAR</button>
+    <div style="display:flex; gap:5px;">
+        <input type="text" id="busquedaId" style="flex:1;" placeholder="Buscar Folio...">
+        <button class="btn btn-search" style="padding:10px 20px;" onclick="buscarIDB()">BUSCAR</button>
     </div>
-    <button id="btnWhatsApp" class="btn btn-wa" onclick="enviarWhatsApp()">Enviar por WhatsApp 📱</button>
-    <button id="btnFinalizar" class="btn btn-save" onclick="finalizarProceso()">Finalizar y Registrar</button>
-    <button id="btnDevolver" class="btn btn-return" onclick="devolverIDB()">Registrar Devolución</button>
-    <button class="btn" style="background:#7f8c8d;" onclick="nuevo()">Limpiar / Nuevo</button>
+    <button class="btn btn-wa" onclick="enviarWhatsApp()">WhatsApp 📱</button>
+    <button id="btnFinalizar" class="btn btn-save" onclick="finalizarProceso()">FINALIZAR Y REGISTRAR</button>
+    <button id="btnDevolver" class="btn" style="background:var(--purple); display:none; background-color: #8e44ad;" onclick="devolverIDB()">REGISTRAR DEVOLUCIÓN</button>
+    <button class="btn" style="background:#7f8c8d;" onclick="nuevo()">NUEVO PROCEDIMIENTO</button>
 </div>
 
 <script>
@@ -78,24 +115,23 @@
     const ctx = canvas.getContext('2d');
     let dibujando = false;
 
-    // MOTOR INDEXED DB - VERSIÓN FINAL
-    const request = indexedDB.open("AGA_S25_GOLD", 1);
+    // MOTOR INDEXED DB
+    const request = indexedDB.open("AGA_DB_PROFESSIONAL", 1);
     request.onupgradeneeded = (e) => {
         db = e.target.result;
-        if (!db.objectStoreNames.contains("vales")) db.createObjectStore("vales", { keyPath: "id" });
+        db.createObjectStore("vales", { keyPath: "id" });
     };
     request.onsuccess = (e) => { db = e.target.result; nuevo(); };
 
     function nuevo() {
         document.getElementById('idVale').value = "AGA-" + Math.floor(Date.now() / 1000);
-        document.getElementById('fecha').value = new Date().toLocaleString();
+        document.getElementById('fecha').value = new Date().toLocaleDateString();
         document.getElementById('producto').value = "";
         document.getElementById('responsable').value = "";
         document.getElementById('obs').value = "";
-        document.getElementById('busquedaId').value = "";
         const st = document.getElementById('statusTxt');
-        st.className = "status status-emision";
-        st.innerText = "Estado: En Emisión";
+        st.className = "status-box status-emision";
+        st.innerText = "ESTADO: EN EMISIÓN";
         document.getElementById('btnFinalizar').style.display = "block";
         document.getElementById('btnDevolver').style.display = "none";
         limpiarCanvas();
@@ -105,7 +141,7 @@
     function ajustarCanvas() {
         const rect = canvas.getBoundingClientRect();
         canvas.width = rect.width; canvas.height = rect.height;
-        ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.strokeStyle = '#000';
+        ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.strokeStyle = '#000';
     }
 
     const getPos = (e) => {
@@ -125,7 +161,6 @@
 
     function buscarIDB() {
         const id = document.getElementById('busquedaId').value.trim();
-        if(!id) return;
         const tx = db.transaction("vales", "readonly");
         const store = tx.objectStore("vales");
         const req = store.get(id);
@@ -142,10 +177,10 @@
                 img.src = r.firma;
                 const st = document.getElementById('statusTxt');
                 if(r.estado === "DEVUELTO") {
-                    st.className = "status status-devuelto"; st.innerText = "Estado: Devolución Completada";
+                    st.className = "status-box status-devuelto"; st.innerText = "ESTADO: DEVOLUCIÓN COMPLETADA";
                     document.getElementById('btnDevolver').style.display = "none";
                 } else {
-                    st.className = "status status-registrado"; st.innerText = "Estado: En Custodia (Registrado)";
+                    st.className = "status-box status-registrado"; st.innerText = "ESTADO: EN CUSTODIA (REGISTRADO)";
                     document.getElementById('btnDevolver').style.display = "block";
                 }
                 document.getElementById('btnFinalizar').style.display = "none";
@@ -153,14 +188,11 @@
         };
     }
 
-    // FINALIZAR: SECUENCIA DE RENDERIZADO FORZADO
     function finalizarProceso() {
         if(!document.getElementById('producto').value) return alert("Falta Producto");
-        
-        // 1. Cambiar estado visual antes de guardar
         const st = document.getElementById('statusTxt');
-        st.className = "status status-registrado";
-        st.innerText = "Estado: En Custodia (Registrado)";
+        st.className = "status-box status-registrado";
+        st.innerText = "ESTADO: EN CUSTOI DIA (REGISTRADO)";
 
         const vale = {
             id: document.getElementById('idVale').value,
@@ -172,16 +204,12 @@
             estado: "REGISTRADO"
         };
 
-        // 2. Guardar en Base de Datos
         const tx = db.transaction("vales", "readwrite");
         tx.objectStore("vales").put(vale);
-
         tx.oncomplete = () => {
-            // 3. Pausa de renderizado profunda para el S25
             setTimeout(() => { 
                 window.print(); 
-                // 4. Limpieza total después del PDF
-                setTimeout(() => { nuevo(); }, 1500); 
+                setTimeout(() => { nuevo(); }, 2000); 
             }, 1000);
         };
     }
@@ -191,21 +219,18 @@
         const tx = db.transaction("vales", "readwrite");
         const store = tx.objectStore("vales");
         const req = store.get(id);
-
         req.onsuccess = () => {
             const data = req.result;
             data.estado = "DEVUELTO";
-            data.fecha = "Cerrado: " + new Date().toLocaleString();
+            data.fecha = new Date().toLocaleDateString() + " (Devuelto)";
             store.put(data);
-
             const st = document.getElementById('statusTxt');
-            st.className = "status status-devuelto";
-            st.innerText = "Estado: Devolución Completada";
+            st.className = "status-box status-devuelto";
+            st.innerText = "ESTADO: DEVOLUCIÓN COMPLETADA";
             document.getElementById('fecha').value = data.fecha;
-
             setTimeout(() => { 
                 window.print(); 
-                setTimeout(() => { nuevo(); }, 1500);
+                setTimeout(() => { nuevo(); }, 2000);
             }, 1000);
         };
     }
