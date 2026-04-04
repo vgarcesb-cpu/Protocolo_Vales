@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AGA PROTOCOLO | S25 Edition</title>
+    <title>AGA PROTOCOLO | Final S25</title>
     <style>
         :root { --blue: #2c3e50; --green: #27ae60; --yellow: #f1c40f; --red: #e74c3c; --purple: #8e44ad; --wa: #25d366; }
         body { font-family: 'Segoe UI', sans-serif; background: #ecf0f1; padding: 10px; display: flex; flex-direction: column; align-items: center; margin: 0; }
@@ -12,8 +12,11 @@
         
         .status { 
             text-align: center; font-weight: bold; padding: 12px; margin-bottom: 15px; border-radius: 6px; 
-            font-size: 14px; text-transform: uppercase; border: 2px solid rgba(0,0,0,0.05);
-            -webkit-print-color-adjust: exact; print-color-adjust: exact; 
+            font-size: 14px; text-transform: uppercase; border: 2px solid rgba(0,0,0,0.1);
+            /* FORZADO CRÍTICO DE COLOR PARA PDF */
+            -webkit-print-color-adjust: exact !important; 
+            print-color-adjust: exact !important; 
+            color-adjust: exact !important;
         }
         .status-emision { background-color: var(--yellow) !important; color: #000 !important; }
         .status-registrado { background-color: var(--red) !important; color: #fff !important; }
@@ -31,7 +34,7 @@
         .btn { padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 13px; color: white; transition: 0.2s; }
         .btn-search { background: var(--blue); }
         .btn-save { background: var(--green); }
-        .btn-wa { background: var(--wa); }
+        .btn-wa { background: var(--wa); border: 2px solid #1ebea5; }
         .btn-return { background: var(--purple); display: none; }
 
         @media print {
@@ -49,7 +52,7 @@
 
     <div class="field"><label>ID Transacción</label><input type="text" id="idVale" readonly></div>
     <div class="field"><label>Fecha</label><input type="text" id="fecha" readonly></div>
-    <div class="field"><label>Equipo (BMI)</label><input type="text" id="producto" placeholder="Radio, Notebook, etc..."></div>
+    <div class="field"><label>Equipo (BMI)</label><input type="text" id="producto" placeholder="Describa el equipo..."></div>
     <div class="field"><label>Responsable</label><input type="text" id="responsable" placeholder="Nombre completo"></div>
     <div class="field"><label>Observaciones</label><textarea id="obs" rows="2"></textarea></div>
     <div class="field">
@@ -75,8 +78,8 @@
     const ctx = canvas.getContext('2d');
     let dibujando = false;
 
-    // 1. MOTOR INDEXED DB - CONEXIÓN ROBUSTA
-    const request = indexedDB.open("AGA_DB_FIXED", 1);
+    // MOTOR INDEXED DB
+    const request = indexedDB.open("AGA_DB_FIXED_FINAL", 1);
     request.onupgradeneeded = (e) => {
         db = e.target.result;
         db.createObjectStore("vales", { keyPath: "id" });
@@ -90,14 +93,11 @@
         document.getElementById('responsable').value = "";
         document.getElementById('obs').value = "";
         document.getElementById('busquedaId').value = "";
-        
         const st = document.getElementById('statusTxt');
         st.className = "status status-emision";
         st.innerText = "Estado: En Emisión";
-        
         document.getElementById('btnFinalizar').style.display = "block";
         document.getElementById('btnDevolver').style.display = "none";
-        
         limpiarCanvas();
         ajustarCanvas();
     }
@@ -114,22 +114,20 @@
         const y = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
         return {x, y};
     };
+    canvas.addEventListener('touchstart', (e) => { dibujando = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); e.preventDefault(); }, {passive:false});
+    canvas.addEventListener('touchmove', (e) => { if(!dibujando) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); }, {passive:false});
+    window.addEventListener('touchend', () => dibujando = false);
     canvas.addEventListener('mousedown', (e) => { dibujando = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); });
     canvas.addEventListener('mousemove', (e) => { if(!dibujando) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
     window.addEventListener('mouseup', () => dibujando = false);
-    canvas.addEventListener('touchstart', (e) => { dibujando = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); e.preventDefault(); }, {passive:false});
-    canvas.addEventListener('touchmove', (e) => { if(!dibujando) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); }, {passive:false});
 
     function limpiarCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
-    // 2. BUSCADOR REPARADO - Llama registros y activa WhatsApp
     function buscarIDB() {
         const id = document.getElementById('busquedaId').value.trim();
-        if(!id) return;
         const tx = db.transaction("vales", "readonly");
         const store = tx.objectStore("vales");
         const req = store.get(id);
-
         req.onsuccess = () => {
             const r = req.result;
             if(r) {
@@ -141,7 +139,6 @@
                 const img = new Image();
                 img.onload = () => { limpiarCanvas(); ctx.drawImage(img, 0, 0); };
                 img.src = r.firma;
-                
                 const st = document.getElementById('statusTxt');
                 if(r.estado === "DEVUELTO") {
                     st.className = "status status-devuelto"; st.innerText = "Estado: Devolución Completada";
@@ -155,10 +152,11 @@
         };
     }
 
-    // 3. FINALIZAR Y LIMPIAR - Repara el ciclo del PDF
+    // REPARACIÓN CLAVE: SECUENCIA DE COLOR FORZADA
     function finalizarProceso() {
         if(!document.getElementById('producto').value) return alert("Falta Producto");
         
+        // 1. Cambiamos el estado visual inmediatamente
         const st = document.getElementById('statusTxt');
         st.className = "status status-registrado";
         st.innerText = "Estado: En Custodia (Registrado)";
@@ -177,10 +175,12 @@
         tx.objectStore("vales").put(vale);
 
         tx.oncomplete = () => {
+            // 2. Pausa técnica para que el navegador "pinte" el rojo antes de generar el PDF
             setTimeout(() => { 
-                window.print(); // Dispara PDF
-                setTimeout(() => { nuevo(); }, 1500); // Limpia tras PDF
-            }, 500);
+                window.print(); 
+                // 3. Pausa larga para que el usuario guarde y luego limpiar
+                setTimeout(() => { nuevo(); }, 2000); 
+            }, 600);
         };
     }
 
@@ -193,7 +193,7 @@
         req.onsuccess = () => {
             const data = req.result;
             data.estado = "DEVUELTO";
-            data.fecha = "Cerrado: " + new Date().toLocaleString();
+            data.fecha = "Devuelto: " + new Date().toLocaleString();
             store.put(data);
 
             const st = document.getElementById('statusTxt');
@@ -203,8 +203,8 @@
 
             setTimeout(() => { 
                 window.print(); 
-                setTimeout(() => { nuevo(); }, 1500);
-            }, 500);
+                setTimeout(() => { nuevo(); }, 2000);
+            }, 600);
         };
     }
 
