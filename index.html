@@ -3,180 +3,240 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Protocolo Fach | AGA</title>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#2c3e50">
-    <meta name="mobile-web-app-capable" content="yes">
-    
+    <title>Sistema AGA | Protocolo</title>
     <style>
-        :root { --primary: #2c3e50; --success: #27ae60; --danger: #e74c3c; --info: #3498db; --purple: #9b59b6; }
-        body { font-family: 'Segoe UI', sans-serif; background: #ecf0f1; padding: 10px; display: flex; justify-content: center; margin: 0; }
-        .vale-card { background: white; width: 100%; max-width: 500px; padding: 20px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-top: 8px solid var(--primary); box-sizing: border-box; }
-        h2 { text-align: center; color: var(--primary); margin: 0 0 15px 0; font-size: 1.4em; }
-        .status-badge { text-align: center; font-weight: bold; padding: 10px; border-radius: 4px; margin-bottom: 15px; background: #f1c40f; font-size: 14px; border: 1px solid #d4ac0d; }
-        .search-box { display: flex; gap: 5px; margin-bottom: 15px; background: #f8f9fa; padding: 8px; border-radius: 8px; border: 1px solid #dee2e6; }
-        .search-box input { flex-grow: 1; padding: 10px; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 14px; }
-        .section { margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-        label { display: block; font-weight: bold; font-size: 12px; margin-bottom: 5px; color: #34495e; }
-        input, textarea { width: 100%; padding: 12px; border: 1px solid #bdc3c7; border-radius: 5px; box-sizing: border-box; font-size: 15px; color: #000; }
-        input[readonly] { background-color: #e9ecef !important; color: #2c3e50 !important; font-weight: bold !important; }
-        #signature-pad { border: 2px dashed #34495e; background: #fff; touch-action: none; width: 100%; height: 200px; border-radius: 8px; }
-        .signature-controls { display: flex; justify-content: space-between; margin-top: 8px; }
-        .btn { width: 100%; padding: 16px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 15px; text-transform: uppercase; }
-        .btn-save { background: var(--success); color: white; }
-        .btn-return { background: var(--danger); color: white; display: none; }
-        .btn-print-dev { background: var(--purple); color: white; display: none; }
-        .btn-clear { background: #95a5a6; color: white; padding: 8px 15px; border-radius: 4px; border: none; }
-        #imgFirmaFinal { display: none; width: 100%; border: 1px solid #ccc; }
+        :root { --blue: #2c3e50; --green: #27ae60; --yellow: #f1c40f; --red: #e74c3c; --purple: #8e44ad; }
+        body { font-family: 'Segoe UI', sans-serif; background: #ecf0f1; padding: 15px; display: flex; flex-direction: column; align-items: center; margin: 0; }
+        
+        .card { background: white; width: 100%; max-width: 500px; padding: 20px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); border-top: 10px solid var(--blue); box-sizing: border-box; position: relative; }
+        
+        h2 { text-align: center; color: var(--blue); margin: 0 0 15px 0; font-size: 1.2em; text-transform: uppercase; }
+        
+        .search-container { display: flex; gap: 8px; margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px; border: 1px solid #ddd; }
+        .search-container input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
+        
+        /* ESTADOS CON FORZADO DE COLOR PARA IMPRESIÓN */
+        .status { 
+            text-align: center; font-weight: bold; padding: 12px; margin-bottom: 15px; border-radius: 6px; 
+            font-size: 14px; text-transform: uppercase; border: 1px solid rgba(0,0,0,0.1);
+            print-color-adjust: exact; -webkit-print-color-adjust: exact; 
+        }
+        .status-emision { background-color: var(--yellow) !important; color: #000 !important; }
+        .status-registrado { background-color: var(--red) !important; color: #fff !important; }
+        .status-devuelto { background-color: var(--green) !important; color: #fff !important; }
+
+        .field { margin-bottom: 12px; }
+        label { display: block; font-size: 11px; font-weight: bold; color: var(--blue); margin-bottom: 4px; text-transform: uppercase; }
+        input, textarea { width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 5px; box-sizing: border-box; font-size: 14px; color: #000; }
+        input[readonly] { background: #f1f3f4; font-weight: bold; }
+
+        #signature-wrap { border: 2px dashed var(--blue); background: #fff; border-radius: 8px; height: 180px; position: relative; margin-top: 5px; }
+        canvas { width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+        
+        .btn-group { display: flex; flex-direction: column; gap: 8px; margin-top: 15px; }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; text-transform: uppercase; }
+        
+        .btn-save { background: var(--green); color: white; }
+        .btn-return { background: var(--purple); color: white; display: none; }
+        .btn-new { background: var(--blue); color: white; }
+        .btn-clear { background: #95a5a6; color: white; padding: 6px 12px; width: auto; font-size: 11px; margin-top: 5px; float: right; border-radius: 4px; border: none; }
 
         @media print {
-            .btn, .btn-clear, .signature-controls, .search-box, .status-badge { display: none !important; }
-            #signature-pad { display: none !important; }
-            #imgFirmaFinal { display: block !important; }
+            .search-container, .btn, .btn-clear, .btn-group { display: none !important; }
             body { background: white; padding: 0; }
-            .vale-card { box-shadow: none; border: 1px solid #000; width: 100%; max-width: 100%; }
+            .card { box-shadow: none; border: 1px solid #000; width: 100%; max-width: 100%; }
+            /* Asegurar que el estado se vea en el PDF */
+            .status { border: 2px solid #000 !important; margin-top: 10px; }
         }
     </style>
 </head>
-<body onload="forzarArranque()">
+<body>
 
-<div class="vale-card" id="app">
-    <h2>AGA: VALE DE ENTREGA</h2>
-    
-    <div class="search-box">
-        <input type="text" id="inputBuscar" placeholder="ID (AGA-2026-XXXX)">
-        <button onclick="buscarVale()" style="background:var(--info); color:white; border:none; padding:10px; border-radius:4px; font-weight:bold;">BUSCAR</button>
+<div class="card">
+    <h2 id="tituloPrincipal">AGA: PROTOCOLO DE CUSTODIA</h2>
+
+    <div class="search-container">
+        <input type="text" id="busquedaId" placeholder="Buscar ID para Devolución...">
+        <button onclick="buscarRegistro()" style="background:var(--blue); color:white; border:none; padding:10px; border-radius:5px; cursor:pointer;">BUSCAR</button>
     </div>
 
-    <div id="statusLabel" class="status-badge">ESTADO: EN EMISIÓN</div>
+    <div id="statusTxt" class="status status-emision">ESTADO: EN EMISIÓN</div>
 
-    <div class="section">
+    <div class="field">
         <label>ID de Transacción</label>
         <input type="text" id="idVale" readonly>
     </div>
 
-    <div class="section">
-        <label>Fecha de Registro</label>
-        <input type="text" id="fechaAuto" readonly>
+    <div class="field">
+        <label>Fecha del Movimiento</label>
+        <input type="text" id="fecha" readonly>
     </div>
 
-    <div class="section">
-        <label>Descripción del BMI</label>
-        <input type="text" id="producto" placeholder="Equipo / Bien Mueble">
+    <div class="field">
+        <label>Descripción del BMI (Equipo)</label>
+        <input type="text" id="producto" placeholder="...">
     </div>
 
-    <div class="section">
-        <label>Responsable (Grado/Nombre)</label>
-        <input type="text" id="cliente" placeholder="Nombre completo">
+    <div class="field">
+        <label>Responsable de Cargo</label>
+        <input type="text" id="responsable" placeholder="...">
     </div>
 
-    <div class="section">
-        <label>Observación Técnica</label>
-        <textarea id="observaciones" rows="3"></textarea> 
+    <div class="field">
+        <label>Observaciones Técnicas</label>
+        <textarea id="obs" rows="2"></textarea>
     </div>
 
-    <div class="section">
+    <div class="field">
         <label>Firma de Responsabilidad</label>
-        <canvas id="signature-pad"></canvas>
-        <img id="imgFirmaFinal">
-        <div class="signature-controls">
-            <button class="btn-clear" onclick="clearSignature()">BORRAR</button>
+        <div id="signature-wrap">
+            <canvas id="canvas"></canvas>
         </div>
+        <button id="btnClear" class="btn-clear" onclick="limpiarCanvas()">BORRAR FIRMA</button>
     </div>
 
-    <button id="btnFinalizar" class="btn btn-save" onclick="finalizarEntrega()">FINALIZAR Y REGISTRAR</button>
-    <button id="btnDevolver" class="btn btn-return" onclick="registrarRetorno()">REGISTRAR DEVOLUCIÓN</button>
-    <button id="btnImprimirDevuelto" class="btn btn-print-dev" onclick="window.print()">IMPRIMIR ACTA</button>
+    <div class="btn-group">
+        <button id="btnFinalizar" class="btn btn-save" onclick="finalizarYRegistrar()">FINALIZAR Y REGISTRAR ENTREGA</button>
+        <button id="btnDevolucion" class="btn btn-return" onclick="marcarDevuelto()">REGISTRAR DEVOLUCIÓN (CERRAR CICLO)</button>
+        <button class="btn btn-new" onclick="nuevaEmision()">NUEVO PROCEDIMIENTO</button>
+    </div>
 </div>
 
 <script>
-    const canvas = document.getElementById('signature-pad');
+    const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     let drawing = false;
 
-    function forzarArranque() {
-        document.getElementById('idVale').value = "AGA-2026-" + Math.floor(Math.random() * 9000 + 1000);
-        const hoy = new Date();
-        document.getElementById('fechaAuto').value = hoy.toLocaleDateString() + " " + hoy.toLocaleTimeString();
-        resizeCanvas();
+    window.onload = () => { nuevaEmision(); setupCanvas(); };
+
+    function setupCanvas() {
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+        ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.strokeStyle = '#000';
     }
 
-    function resizeCanvas() {
-        const ratio = window.devicePixelRatio || 1;
-        canvas.width = canvas.offsetWidth * ratio;
-        canvas.height = canvas.offsetHeight * ratio;
-        ctx.scale(ratio, ratio);
-        ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.strokeStyle = '#2c3e50';
+    function nuevaEmision() {
+        document.getElementById('idVale').value = "AGA-2026-" + Math.floor(Math.random()*8999+1000);
+        document.getElementById('fecha').value = new Date().toLocaleString();
+        document.getElementById('producto').value = "";
+        document.getElementById('responsable').value = "";
+        document.getElementById('obs').value = "";
+        document.getElementById('tituloPrincipal').innerText = "AGA: PROTOCOLO DE CUSTODIA";
+        
+        const status = document.getElementById('statusTxt');
+        status.innerText = "ESTADO: EN EMISIÓN";
+        status.className = "status status-emision";
+        
+        document.getElementById('btnFinalizar').style.display = "block";
+        document.getElementById('btnDevolucion').style.display = "none";
+        document.getElementById('btnClear').style.display = "block";
+        limpiarCanvas();
     }
 
+    // Dibujo Híbrido
     function getPos(e) {
         const rect = canvas.getBoundingClientRect();
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        return { x: clientX - rect.left, y: clientY - rect.top };
+        return {
+            x: (e.touches ? e.touches[0].clientX : e.clientX) - rect.left,
+            y: (e.touches ? e.touches[0].clientY : e.clientY) - rect.top
+        };
     }
+    function start(e) { drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); if(e.touches) e.preventDefault(); }
+    function move(e) { if(!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); if(e.touches) e.preventDefault(); }
 
-    canvas.addEventListener('touchstart', (e) => { drawing = true; const pos = getPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); e.preventDefault(); }, {passive: false});
-    canvas.addEventListener('touchmove', (e) => { if (!drawing) return; const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); e.preventDefault(); }, {passive: false});
+    canvas.addEventListener('mousedown', start);
+    canvas.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', () => drawing = false);
+    canvas.addEventListener('touchstart', start, {passive: false});
+    canvas.addEventListener('touchmove', move, {passive: false});
     canvas.addEventListener('touchend', () => drawing = false);
 
-    function clearSignature() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+    function limpiarCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
-    function finalizarEntrega() {
-        if(!document.getElementById('producto').value || !document.getElementById('cliente').value) return alert("Complete los datos");
+    function buscarRegistro() {
+        const id = document.getElementById('busquedaId').value.trim();
+        const db = JSON.parse(localStorage.getItem('AGA_DB')) || [];
+        const reg = db.find(r => r.id === id);
+
+        if(reg) {
+            document.getElementById('idVale').value = reg.id;
+            document.getElementById('fecha').value = reg.fecha;
+            document.getElementById('producto').value = reg.producto;
+            document.getElementById('responsable').value = reg.responsable;
+            document.getElementById('obs').value = reg.obs;
+            
+            const img = new Image();
+            img.onload = () => { limpiarCanvas(); ctx.drawImage(img, 0, 0); };
+            img.src = reg.firma;
+
+            const status = document.getElementById('statusTxt');
+            if(reg.estado === "DEVUELTO") {
+                status.innerText = "ESTADO: DEVOLUCIÓN COMPLETADA";
+                status.className = "status status-devuelto";
+                document.getElementById('tituloPrincipal').innerText = "ACTA DE RECEPCIÓN / DEVOLUCIÓN";
+                document.getElementById('btnFinalizar').style.display = "none";
+                document.getElementById('btnDevolucion').style.display = "none";
+                document.getElementById('btnClear').style.display = "none";
+            } else {
+                status.innerText = "ESTADO: EQUIPO EN CUSTODIA (REGISTRADO)";
+                status.className = "status status-registrado";
+                document.getElementById('btnFinalizar').style.display = "none";
+                document.getElementById('btnDevolucion').style.display = "block";
+                document.getElementById('btnClear').style.display = "none";
+            }
+        } else { alert("ID no encontrado."); }
+    }
+
+    function finalizarYRegistrar() {
+        if(!document.getElementById('producto').value || !document.getElementById('responsable').value) return alert("Complete los datos.");
         
-        // CONVERSIÓN CRÍTICA PARA S25
-        const dataURL = canvas.toDataURL();
-        document.getElementById('imgFirmaFinal').src = dataURL;
-        
-        const registro = {
+        const data = {
             id: document.getElementById('idVale').value,
-            fecha: document.getElementById('fechaAuto').value,
+            fecha: document.getElementById('fecha').value,
             producto: document.getElementById('producto').value,
-            cliente: document.getElementById('cliente').value,
-            observacion: document.getElementById('observaciones').value,
-            firma: dataURL,
+            responsable: document.getElementById('responsable').value,
+            obs: document.getElementById('obs').value,
+            firma: canvas.toDataURL(),
             estado: "REGISTRADO"
         };
 
-        let registros = JSON.parse(localStorage.getItem('vales_aga')) || [];
-        registros.push(registro);
-        localStorage.setItem('vales_aga', JSON.stringify(registros));
+        let db = JSON.parse(localStorage.getItem('AGA_DB')) || [];
+        db.push(data);
+        localStorage.setItem('AGA_DB', JSON.stringify(db));
 
-        document.title = "Vale_" + registro.id;
+        // Actualizar UI antes de imprimir
+        document.getElementById('statusTxt').innerText = "ESTADO: EQUIPO EN CUSTODIA (REGISTRADO)";
+        document.getElementById('statusTxt').className = "status status-registrado";
+        
+        document.title = "Registro_" + data.id;
         window.print();
-        setTimeout(() => location.reload(), 1500);
     }
 
-    function buscarVale() {
-        const id = document.getElementById('inputBuscar').value;
-        const registros = JSON.parse(localStorage.getItem('vales_aga')) || [];
-        const v = registros.find(r => r.id === id);
-        if(v) {
-            document.getElementById('idVale').value = v.id;
-            document.getElementById('fechaAuto').value = v.fecha;
-            document.getElementById('producto').value = v.producto;
-            document.getElementById('cliente').value = v.cliente;
-            document.getElementById('observaciones').value = v.observacion;
-            document.getElementById('imgFirmaFinal').src = v.firma;
-            document.getElementById('statusLabel').innerText = "ESTADO: " + v.estado;
-            document.getElementById('statusLabel').style.background = v.estado === "DEVUELTO" ? "#27ae60" : "#e74c3c";
-            document.getElementById('statusLabel').style.color = "white";
-            document.getElementById('btnFinalizar').style.display = "none";
-            document.getElementById('btnDevolver').style.display = v.estado === "DEVUELTO" ? "none" : "block";
-            document.getElementById('btnImprimirDevuelto').style.display = v.estado === "DEVUELTO" ? "block" : "none";
-        } else { alert("No encontrado"); }
-    }
-
-    function registrarRetorno() {
+    function marcarDevuelto() {
         const id = document.getElementById('idVale').value;
-        let registros = JSON.parse(localStorage.getItem('vales_aga')) || [];
-        const idx = registros.findIndex(r => r.id === id);
-        if(idx !== -1) {
-            registros[idx].estado = "DEVUELTO";
-            localStorage.setItem('vales_aga', JSON.stringify(registros));
-            alert("Devolución Guardada");
-            location.reload();
+        let db = JSON.parse(localStorage.getItem('AGA_DB')) || [];
+        const index = db.findIndex(r => r.id === id);
+        
+        if(index !== -1) {
+            db[index].estado = "DEVUELTO";
+            db[index].fecha = "DEVUELTO EL: " + new Date().toLocaleString();
+            localStorage.setItem('AGA_DB', JSON.stringify(db));
+            
+            // CAMBIO VISUAL INMEDIATO PARA LA IMPRESIÓN
+            const status = document.getElementById('statusTxt');
+            status.innerText = "ESTADO: DEVOLUCIÓN COMPLETADA";
+            status.className = "status status-devuelto";
+            document.getElementById('tituloPrincipal').innerText = "ACTA DE RECEPCIÓN / DEVOLUCIÓN";
+            document.getElementById('fecha').value = db[index].fecha;
+            
+            document.title = "Devolucion_" + id;
+            
+            // Disparar impresión con el estado VERDE visible
+            setTimeout(() => { 
+                window.print();
+                alert("Ciclo Cerrado Exitosamente.");
+            }, 500);
         }
     }
 </script>
