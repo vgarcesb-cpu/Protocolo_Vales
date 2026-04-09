@@ -1,6 +1,6 @@
 {
-  "name": "Protocolo AGA Totis",
-  "short_name": "AGA Vales",
+  "name": "VALE DE ENTREGA AGA",
+  "short_name": "VALE DE ENTREGA",
   "description": "Sistema de Registro y Control de Protocolos AGA",
   "start_url": "./index.html",
   "scope": "./",
