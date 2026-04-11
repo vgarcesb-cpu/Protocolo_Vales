@@ -311,6 +311,7 @@
         };
 
         const tx = db.transaction("vales", "readwrite");
+        tx.onerror = (e) => alert("Error en base de datos: " + e.target.error);
         tx.objectStore("vales").put(vale);
 
         tx.oncomplete = () => {
