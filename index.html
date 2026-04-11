@@ -329,7 +329,7 @@
                 // Modal aparece después del diálogo de impresión
                 // Resuelve la pantalla en blanco del S25 post-print
                 setTimeout(() => mostrarModal('registro'), 1500);
-            }, 500);
+            }, 800);
         };
     }
 
@@ -371,7 +371,7 @@
                     // Modal aparece después del diálogo de impresión
                     // El botón "NUEVO PROCEDIMIENTO" del modal llama a nuevo()
                     setTimeout(() => mostrarModal('devolucion'), 1500);
-                }, 500);
+                }, 800);
             };
         };
     }
@@ -403,6 +403,8 @@
     }
 
     function importarJSON(event) {
+        function importarJSON(event) {
+        if (!db) return alert("Base de datos no lista. Intenta de nuevo en un momento.");
         const file   = event.target.files[0];
         const reader = new FileReader();
         reader.onload = (e) => {
