@@ -1,6 +1,6 @@
 {
   "name": "VALE DE ENTREGA AGA",
-  "short_name": "VALE DE ENTREGA",
+  "short_name": "VALE ENTREGA",
   "description": "Sistema de Registro y Control de Protocolos AGA",
   "start_url": "./index.html",
   "scope": "./",
@@ -10,10 +10,18 @@
   "theme_color": "#1a3a5a",
   "icons": [
     {
+      {
       "src": "icono.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icono.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
     }
   ]
 }
