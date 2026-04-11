@@ -216,6 +216,7 @@
 
     // Reajuste al rotar pantalla — importante en S25 en terreno
     window.addEventListener('resize', () => { setTimeout(ajustarCanvas, 200); });
+    screen.orientation?.addEventListener('change', () => setTimeout(ajustarCanvas, 350));
 
     // ─────────────────────────────────────────────────────────────────
     // NUEVO PROCEDIMIENTO
