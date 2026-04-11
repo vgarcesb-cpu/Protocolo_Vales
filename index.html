@@ -398,7 +398,9 @@
     // ─────────────────────────────────────────────────────────────────
     function exportarJSON() {
         if (!db) return alert("Base de datos no lista.");
-        db.transaction("vales", "readonly").objectStore("vales").getAll().onsuccess = (e) => {
+        const txExp = db.transaction("vales", "readonly");
+        txExp.onerror = (e) => alert("Error en base de datos: " + e.target.error);
+        txExp.objectStore("vales").getAll().onsuccess = (e) => {
             const blob = new Blob([JSON.stringify(e.target.result, null, 2)], { type: "application/json" });
             const a    = document.createElement("a");
             a.href     = URL.createObjectURL(blob);
