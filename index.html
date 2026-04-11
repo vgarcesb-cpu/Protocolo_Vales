@@ -268,6 +268,7 @@
                 img.onload = () => {
                     limpiarCanvas();
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    document.getElementById('signatureImage').src = r.firma;
                 };
                 img.src = r.firma;
             }
