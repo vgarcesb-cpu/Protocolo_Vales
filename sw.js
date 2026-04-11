@@ -1,20 +1,20 @@
-const CACHE_NAME = "vale-entrega-v5";
+const CACHE_NAME = "vale-entrega-v6";
 const FILES_TO_CACHE = [
 "./",
 "./index.html",
 "./manifest.json",
-"./icono.png"
-
-
+"./icono.png",
+"https://cdn.tailwindcss.com"
 ];
 // Instalación
 self.addEventListener("install", function(evt) {
 evt.waitUntil(
 caches.open(CACHE_NAME).then(function(cache) {
 return cache.addAll(FILES_TO_CACHE);
+}).then(function() {
+return self.skipWaiting();
 })
 );
-self.skipWaiting();
 });
 // Activación
 self.addEventListener("activate", function(evt) {
@@ -40,7 +40,7 @@ caches.match(evt.request).then(function(response) {
 return (
 response ||
 fetch(evt.request).catch(function() {
-return caches.match("./index.html");
+if (evt.request.mode === 'navigate') return caches.match("./index.html");
 })
 );
 })
