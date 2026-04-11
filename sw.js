@@ -1,10 +1,9 @@
-const CACHE_NAME = "vale-entrega-v6";
+const CACHE_NAME = "vale-entrega-v7";
 const FILES_TO_CACHE = [
 "./",
 "./index.html",
 "./manifest.json",
 "./icono.png",
-"https://cdn.tailwindcss.com"
 ];
 // Instalación
 self.addEventListener("install", function(evt) {
